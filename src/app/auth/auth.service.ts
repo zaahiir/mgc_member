@@ -92,7 +92,7 @@ export class AuthService {
   }
 
   requestPasswordReset(email: string): Observable<PasswordResetResponse> {
-    return this.http.post<PasswordResetResponse>(`${this.apiUrl}password_reset/`, { email })
+    return this.http.post<PasswordResetResponse>(`${this.apiUrl}user/password_reset/`, { email })
       .pipe(
         catchError(this.handleError)
       );
@@ -100,7 +100,7 @@ export class AuthService {
 
   // New method to verify reset code and set new password
   setNewPassword(data: SetNewPasswordRequest): Observable<any> {
-    return this.http.post(`${this.apiUrl}set_new_password/`, data)
+    return this.http.post(`${this.apiUrl}user/set_new_password/`, data)
       .pipe(
         catchError(this.handleError)
       );
@@ -108,7 +108,7 @@ export class AuthService {
 
   // Method to verify reset code without setting password
   verifyResetCode(verification_code: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}verify_reset_code/`, { verification_code })
+    return this.http.post(`${this.apiUrl}user/verify_reset_code/`, { verification_code })
       .pipe(
         catchError(this.handleError)
       );

@@ -44,12 +44,7 @@
             "prerender": true,
             "ssr": {
               "entry": "server.ts"
-            },
-            "allowedCommonJsDependencies": [
-              "form-data",
-              "proxy-from-env",
-              "follow-redirects"
-            ]
+            }
           },
           "configurations": {
             "production": {
@@ -85,14 +80,7 @@
               "buildTarget": "master-golf:build:development"
             }
           },
-          "defaultConfiguration": "development",
-          "options": {
-            "allowedCommonJsDependencies": [
-              "form-data",
-              "proxy-from-env",
-              "follow-redirects"
-            ]
-          }
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n"
