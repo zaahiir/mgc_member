@@ -1287,6 +1287,48 @@
   text-align: center;
 }
 
+/* Expired Booking Styles */
+.expired-booking-row {
+  opacity: 0.6;
+  background-color: #f5f5f5 !important;
+}
+
+.expired-booking-row .booking-id,
+.expired-booking-row .booking-date,
+.expired-booking-row .booking-time {
+  text-decoration: line-through;
+  color: #999 !important;
+}
+
+.badge.bg-secondary.text-decoration-line-through {
+  text-decoration: line-through;
+  background-color: #6c757d !important;
+  opacity: 0.7;
+}
+
+.expired-booking-actions button {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Expired status badge */
+.status-badge.expired {
+  background-color: #6c757d;
+  color: #fff;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.booking-row.expired {
+  opacity: 0.6;
+  background-color: #fafafa;
+}
+
+.booking-row.expired:hover {
+  background-color: #f5f5f5;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .page-header h1 {

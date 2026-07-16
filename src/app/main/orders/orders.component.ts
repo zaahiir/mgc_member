@@ -213,6 +213,39 @@ export class OrdersComponent implements OnInit {
     return date.toDateString() === ukNow.toDateString();
   }
   
+  // Helper method to check if a booking/request is expired (past date/time)
+  private isBookingExpired(booking: Booking): boolean {
+    if (!booking.slotDate && !booking.bookingDate) return false;
+    
+    try {
+      const ukNow = this.getCurrentUKTime();
+      const bookingDateStr = booking.slotDate || booking.bookingDate;
+      const bookingTimeStr = booking.booking_time || booking.bookingTime;
+      
+      // Parse booking date
+      const bookingDate = new Date(bookingDateStr);
+      if (isNaN(bookingDate.getTime())) return false;
+      
+      // If we have time, check date + time
+      if (bookingTimeStr) {
+        const [hours, minutes] = bookingTimeStr.split(':').map(Number);
+        bookingDate.setHours(hours, minutes, 0, 0);
+        
+        // Compare with current UK time
+        return bookingDate < ukNow;
+      }
+      
+      // If no time, just check if date is in the past
+      const ukToday = new Date(ukNow.getFullYear(), ukNow.getMonth(), ukNow.getDate());
+      const bookingDateOnly = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
+      
+      return bookingDateOnly < ukToday;
+    } catch (error) {
+      console.error('Error checking if booking is expired:', error);
+      return false;
+    }
+  }
+  
   bookings: Booking[] = [];
   notifications: Notification[] = [];
   unreadCount = 0;
@@ -367,12 +400,20 @@ export class OrdersComponent implements OnInit {
     // Add own bookings
     this.enhancedOrdersData.own_bookings.forEach(booking => {
       console.log('Own booking data:', booking);
-      this.bookings.push({
+      const processedBooking = {
         ...booking,
         isOwnBooking: true,
         displayType: 'own_booking' as 'own_booking',
         statusType: this.getBookingStatusType(booking)
-      });
+      };
+      
+      // Mark as expired if past date/time
+      if (this.isBookingExpired(processedBooking)) {
+        processedBooking.statusType = 'EXPIRED';
+        processedBooking.status = 'expired';
+      }
+      
+      this.bookings.push(processedBooking);
     });
 
     // Add sent requests
@@ -384,6 +425,13 @@ export class OrdersComponent implements OnInit {
         displayType: 'sent_request' as 'sent_request',
         statusType: this.getSentRequestStatusType(request)
       };
+      
+      // Mark as expired if past date/time
+      if (this.isBookingExpired(convertedBooking)) {
+        convertedBooking.statusType = 'EXPIRED SENT REQUEST';
+        convertedBooking.status = 'expired';
+      }
+      
       console.log('Converted sent request booking:', convertedBooking);
       this.bookings.push(convertedBooking);
     });
@@ -397,6 +445,13 @@ export class OrdersComponent implements OnInit {
         displayType: 'received_request' as 'received_request',
         statusType: this.getReceivedRequestStatusType(request)
       };
+      
+      // Mark as expired if past date/time
+      if (this.isBookingExpired(convertedBooking)) {
+        convertedBooking.statusType = 'EXPIRED RECEIVED REQUEST';
+        convertedBooking.status = 'expired';
+      }
+      
       console.log('Converted received request booking:', convertedBooking);
       this.bookings.push(convertedBooking);
     });
@@ -572,6 +627,11 @@ export class OrdersComponent implements OnInit {
   getEnhancedStatusBadgeClass(booking: Booking): string {
     const statusType = booking.statusType || '';
     
+    // Check for expired status first
+    if (statusType.includes('EXPIRED')) {
+      return 'badge bg-secondary text-decoration-line-through';
+    }
+    
     switch (statusType) {
       case 'CONFIRMED':
         return 'badge bg-success';
@@ -594,6 +654,10 @@ export class OrdersComponent implements OnInit {
 
   // Enhanced action methods
   showAddParticipantsModal(booking: Booking) {
+    // Don't allow actions on expired bookings
+    if (this.isBookingExpired(booking)) {
+      return;
+    }
     this.selectedBookingForParticipants = booking;
     this.showParticipantModal = true;
   }
@@ -1062,6 +1126,11 @@ export class OrdersComponent implements OnInit {
 
   // Handle accept request
   async handleAcceptRequest(booking: any) {
+    // Don't allow accepting expired requests
+    if (this.isBookingExpired(booking)) {
+      return;
+    }
+    
     if (!this.canAcceptRequest(booking)) {
       return;
     }
@@ -1126,6 +1195,11 @@ export class OrdersComponent implements OnInit {
 
   // Handle reject request
   async handleRejectRequest(booking: any) {
+    // Don't allow rejecting expired requests
+    if (this.isBookingExpired(booking)) {
+      return;
+    }
+    
     try {
       // For join requests, we need to use the original booking ID (the slot being joined)
       // and the join request ID (the request itself)
@@ -1494,6 +1568,18 @@ export class OrdersComponent implements OnInit {
 
   // Enhanced action handling methods
   getActionButton(booking: Booking): any {
+    // Check if booking is expired
+    const isExpired = this.isBookingExpired(booking);
+    
+    if (isExpired) {
+      return {
+        text: 'Expired',
+        color: 'gray',
+        action: 'viewDetails',
+        enabled: false
+      };
+    }
+    
     // For join requests (outgoing), show only View Details
     if (booking.is_join_request && !booking.isIncomingRequest) {
       return {
@@ -1850,6 +1936,11 @@ export class OrdersComponent implements OnInit {
   // Check if join request can be rejected
   canRejectJoinRequest(joinRequest: JoinRequest): boolean {
     return joinRequest.status === 'pending_approval';
+  }
+  
+  // Public method to check if booking is expired (for template use)
+  isExpired(booking: Booking): boolean {
+    return this.isBookingExpired(booking);
   }
 
   // Get status badge class for join requests
