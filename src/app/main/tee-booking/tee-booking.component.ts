@@ -1125,12 +1125,26 @@ export class TeeBookingComponent implements OnInit, OnDestroy {
     if (slot.slot_status === 'booked' || !slot.available) {
       return 'booked-slot';
     } else if (slot.isSelected) {
-      return 'selected';
+      // Full selection (all 4 spots taken) => green theme (#77a96a).
+      // Partial selection or joining a partially-available slot => secondary teal (#1c403d).
+      return this.isFullSelection(slot) ? 'selected' : 'partial-slot-theme';
     } else if (slot.slot_status === 'partially_available') {
       return 'partial-slot-theme';
     } else {
       return 'available-slot';
     }
+  }
+
+  /**
+   * A selection is "full" only when the member books all 4 player spots on a
+   * fully-available slot. Joining a partially-available slot, or selecting fewer
+   * than 4 participants, counts as a partial selection.
+   */
+  private isFullSelection(slot: TimeSlot): boolean {
+    if (slot.slot_status === 'partially_available') {
+      return false;
+    }
+    return (slot.participantCount || 0) >= 4;
   }
 
   getSlotTooltip(slot: TimeSlot): string {
@@ -1214,6 +1228,24 @@ export class TeeBookingComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * A member can be in only one place at a time: two selected slots that share
+   * the same date + time (even on different tees/courses) is not allowed.
+   * Returns the first {date, time} that clashes, or null if all are distinct.
+   */
+  private findSameTimeConflict(): { date: string; time: string } | null {
+    const seen = new Set<string>();
+    for (const slot of this.selectedSlots) {
+      const dateKey = typeof slot.date === 'string' ? slot.date : this.getDateKey(slot.date);
+      const key = `${dateKey}__${slot.time}`;
+      if (seen.has(key)) {
+        return { date: dateKey, time: slot.time };
+      }
+      seen.add(key);
+    }
+    return null;
+  }
+
   async bookTeeTime(): Promise<void> {
     if (!this.canBook()) {
       this.errorMessage = 'Please select at least one slot and ensure you are logged in';
@@ -1224,9 +1256,18 @@ export class TeeBookingComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     try {
+      // Enforce: a member cannot book more than one tee for the same date + time.
+      const timeConflict = this.findSameTimeConflict();
+      if (timeConflict) {
+        this.isLoading = false;
+        this.errorMessage = `You selected more than one tee for ${timeConflict.date} at ${timeConflict.time}. ` +
+          `You can only book one tee per time slot.`;
+        return;
+      }
+
       // Check slot availability for partially available slots before processing
       await this.checkSlotAvailabilityForSelectedSlots();
-      
+
       // Separate slots by type: available vs partially available
       const availableSlots = this.selectedSlots.filter(slot => slot.originalStatus === 'available');
       const partiallyAvailableSlots = this.selectedSlots.filter(slot => slot.originalStatus === 'partially_available');

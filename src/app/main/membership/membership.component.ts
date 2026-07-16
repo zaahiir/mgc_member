@@ -87,14 +87,22 @@ export class MembershipComponent implements OnInit {
       
                     // Transform plans to the format needed for display
         this.membershipPlans = await Promise.all(plans.map(async (plan: any) => {
-          // Get features for this plan
-          const features = await this.planService.getPlanFeatures(plan.id);
-          
+          // Prefer the features already embedded in the plan payload (same call that
+          // renders the plan cards). Only fall back to the dedicated endpoint if the
+          // embedded list is missing/empty, so features never silently disappear.
+          let rawFeatures: any[] = Array.isArray(plan.features) ? plan.features : [];
+          if (rawFeatures.length === 0) {
+            rawFeatures = await this.planService.getPlanFeatures(plan.id);
+          }
+
           // Transform features to the format expected by the template
-          const transformedFeatures = features.map((feature: any) => ({
-            name: feature.featureName,
-            included: feature.isIncluded
-          }));
+          const transformedFeatures = rawFeatures
+            .filter((feature: any) => feature.hideStatus === 0 || feature.hideStatus === undefined)
+            .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+            .map((feature: any) => ({
+              name: feature.featureName,
+              included: feature.isIncluded
+            }));
 
           return {
             id: plan.id,

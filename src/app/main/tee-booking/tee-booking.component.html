@@ -280,51 +280,6 @@
           </div>
         </div>
         
-        <!-- Optimized Contact & Directions Widget -->
-        <div class="contact-directions-widget">
-          <div class="widget-header">
-            <h3><fa-icon [icon]="locationIcon"></fa-icon> Contact & Directions</h3>
-          </div>
-          
-          <div class="contact-info">
-            <div class="info-item" (click)="copyToClipboard(course.address)">
-              <div class="icon-wrapper">
-                <fa-icon [icon]="locationIcon"></fa-icon>
-              </div>
-              <div class="info-content">
-                <span class="label">Location</span>
-                <span class="value">{{course.address}}</span>
-              </div>
-              <div class="action-icon">
-                <fa-icon [icon]="copyIcon" title="Copy address"></fa-icon>
-              </div>
-            </div>
-
-            <div class="info-item" (click)="makeCall()">
-              <div class="icon-wrapper">
-                <fa-icon [icon]="phoneIcon"></fa-icon>
-              </div>
-              <div class="info-content">
-                <span class="label">Phone</span>
-                <span class="value">{{course.phone}}</span>
-              </div>
-              <div class="action-icon">
-                <fa-icon [icon]="phoneIcon" title="Call now"></fa-icon>
-              </div>
-            </div>
-          </div>
-
-          <div class="direction-actions">
-            <button class="action-btn primary" (click)="getDirections()">
-              <fa-icon [icon]="directionsIcon"></fa-icon>
-              <span>Get Directions</span>
-            </button>
-            <button class="action-btn secondary" (click)="shareLocation()">
-              <fa-icon [icon]="shareIcon"></fa-icon>
-              <span>Share Location</span>
-            </button>
-          </div>
-        </div>
       </div>
 
       <!-- Main Content -->
@@ -394,6 +349,52 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Optimized Contact & Directions Widget (moved below main content) -->
+        <div class="contact-directions-widget">
+          <div class="widget-header">
+            <h3><fa-icon [icon]="locationIcon"></fa-icon> Contact & Directions</h3>
+          </div>
+
+          <div class="contact-info">
+            <div class="info-item" (click)="copyToClipboard(course.address)">
+              <div class="icon-wrapper">
+                <fa-icon [icon]="locationIcon"></fa-icon>
+              </div>
+              <div class="info-content">
+                <span class="label">Location</span>
+                <span class="value">{{course.address}}</span>
+              </div>
+              <div class="action-icon">
+                <fa-icon [icon]="copyIcon" title="Copy address"></fa-icon>
+              </div>
+            </div>
+
+            <div class="info-item" (click)="makeCall()">
+              <div class="icon-wrapper">
+                <fa-icon [icon]="phoneIcon"></fa-icon>
+              </div>
+              <div class="info-content">
+                <span class="label">Phone</span>
+                <span class="value">{{course.phone}}</span>
+              </div>
+              <div class="action-icon">
+                <fa-icon [icon]="phoneIcon" title="Call now"></fa-icon>
+              </div>
+            </div>
+          </div>
+
+          <div class="direction-actions">
+            <button class="action-btn primary" (click)="getDirections()">
+              <fa-icon [icon]="directionsIcon"></fa-icon>
+              <span>Get Directions</span>
+            </button>
+            <button class="action-btn secondary" (click)="shareLocation()">
+              <fa-icon [icon]="shareIcon"></fa-icon>
+              <span>Share Location</span>
+            </button>
           </div>
         </div>
       </div>
