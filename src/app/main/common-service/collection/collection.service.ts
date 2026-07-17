@@ -184,8 +184,14 @@ export class CollectionService {
   // Booking Management API endpoints
   createBooking(bookingData: BookingData) {
     const url = `${this.apiUrl}booking/`;
-    const config: any = {};
-    
+    const config: any = {
+      validateStatus: function (status: number) {
+        // Let 400s resolve so the caller can show the server's message
+        // (e.g. a same-time booking clash) instead of a generic axios error
+        return status >= 200 && status < 500;
+      }
+    };
+
     // Add authorization headers if available
     const token = localStorage.getItem('access_token');
     if (token) {
@@ -193,7 +199,7 @@ export class CollectionService {
         'Authorization': `Bearer ${token}`
       };
     }
-    
+
     return axios.post(url, bookingData, config);
   }
 
