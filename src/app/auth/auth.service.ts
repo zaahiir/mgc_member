@@ -26,6 +26,9 @@ export interface PasswordResetResponse {
 }
 
 export interface SetNewPasswordRequest {
+  // The API now requires the address the code was issued to. A code alone
+  // used to identify the member, so one guessed code matched any account.
+  email: string;
   verification_code: string;
   new_password: string;
   confirm_password: string;
@@ -107,8 +110,8 @@ export class AuthService {
   }
 
   // Method to verify reset code without setting password
-  verifyResetCode(verification_code: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}user/verify_reset_code/`, { verification_code })
+  verifyResetCode(email: string, verification_code: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}user/verify_reset_code/`, { email, verification_code })
       .pipe(
         catchError(this.handleError)
       );

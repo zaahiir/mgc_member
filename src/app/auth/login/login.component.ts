@@ -35,6 +35,8 @@ export class LoginComponent implements OnInit {
   errorMessage: string = '';
   successMessage: string = '';
   isLoading: boolean = false;
+  /** Address the current reset code was issued to; sent with the code. */
+  resetEmail: string = '';
 
   // Password visibility properties
   showLoginPassword: boolean = false;
@@ -267,7 +269,10 @@ export class LoginComponent implements OnInit {
       this.authService.requestPasswordReset(email).subscribe({
         next: (response) => {
           this.isLoading = false;
-          this.successMessage = 'Verification code has been sent to your email. Please check your email and use the code to set a new password.';
+          // Held for the set-password step, which must send the address the
+          // code was issued to alongside the code itself.
+          this.resetEmail = email;
+          this.successMessage = 'If that email is registered, a verification code has been sent. Please check your inbox and use the code to set a new password.';
           this.forgotPasswordForm.reset();
 
           // Automatically show the set new password form after 3 seconds
@@ -279,8 +284,8 @@ export class LoginComponent implements OnInit {
           this.isLoading = false;
           console.error('Password reset error:', error);
           
-          if (error.status === 404) {
-            this.errorMessage = 'Email not found in our records. Please check the email address.';
+          if (error.status === 429) {
+            this.errorMessage = 'Too many reset requests. Please wait a while before trying again.';
           } else if (error.status === 400) {
             this.errorMessage = error.error?.message || 'Invalid email format.';
           } else if (error.status === 0 || error.status === 500) {
@@ -300,7 +305,14 @@ export class LoginComponent implements OnInit {
       this.isLoading = true;
       this.errorMessage = '';
 
+      if (!this.resetEmail) {
+        this.isLoading = false;
+        this.errorMessage = 'Please request a verification code first.';
+        return;
+      }
+
       const formData = {
+        email: this.resetEmail,
         verification_code: this.getVerificationCode(),
         new_password: this.setNewPasswordForm.value.new_password,
         confirm_password: this.setNewPasswordForm.value.confirm_password

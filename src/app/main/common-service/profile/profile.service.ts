@@ -88,7 +88,9 @@ export class ProfileService {
     console.log('Fetching profile for user ID:', userId);
 
     // Use the current profile endpoint with user_id parameter
-    return axios.get(`${this.currentProfileUrl}?user_id=${userId}`, config);
+    // The server derives identity from the bearer token; a user_id query
+    // parameter is ignored (it previously let any id be requested).
+    return axios.get(this.currentProfileUrl, config);
   }
 
   // Update member profile by ID
@@ -317,7 +319,7 @@ export class ProfileService {
 
       // Try to get QR code from current member endpoint with user_id
       try {
-        const response = await axios.get(`${this.apiUrl}member/current-qr-code/?user_id=${userId}`, config);
+        const response = await axios.get(`${this.apiUrl}member/current-qr-code/`, config);
         if (response.data && response.data.code === 1) {
           return response.data.data;
         }
@@ -477,7 +479,7 @@ export class ProfileService {
 
       // Try to get current memberships from dedicated endpoint with user_id
       try {
-        const response = await axios.get(`${this.apiUrl}member/current-memberships/?user_id=${userId}`, config);
+        const response = await axios.get(`${this.apiUrl}member/current-memberships/`, config);
         
         if (response.data && response.data.code === 1 && response.data.data) {
           return response.data.data;
